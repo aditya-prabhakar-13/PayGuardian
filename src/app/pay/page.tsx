@@ -55,32 +55,17 @@ function PayForm() {
     setIsProcessing(true);
 
     try {
-      // Read the original raw QR string that was saved by the scan page.
-      // This preserves every parameter exactly as the merchant encoded them,
-      // avoiding all URLSearchParams encoding/decoding issues.
-      let upiUrl = sessionStorage.getItem("payguardian_raw_upi") || "";
+      // Build a clean minimal UPI URL with only the essential parameters.
+      // GPay rejects external intents that include merchant-specific params
+      // like mc, mode, purpose that are only meant for internal QR processing.
+      const parts: string[] = [];
+      parts.push(`pa=${pa}`);
+      if (pn) parts.push(`pn=${pn}`);
+      parts.push(`am=${amount}`);
+      parts.push(`cu=INR`);
+      if (notes) parts.push(`tn=${notes}`);
 
-      if (!upiUrl) {
-        // Fallback: build a minimal UPI URL from the display params
-        upiUrl = `upi://pay?pa=${pa}&am=${amount}`;
-        if (pn) upiUrl += `&pn=${pn}`;
-      } else {
-        // Replace or insert the amount in the raw URL
-        if (upiUrl.match(/[?&]am=[^&]*/)) {
-          upiUrl = upiUrl.replace(/([?&]am=)[^&]*/, `$1${amount}`);
-        } else {
-          upiUrl += `&am=${amount}`;
-        }
-      }
-
-      // Add notes if provided
-      if (notes) {
-        if (upiUrl.match(/[?&]tn=[^&]*/)) {
-          upiUrl = upiUrl.replace(/([?&]tn=)[^&]*/, `$1${encodeURIComponent(notes)}`);
-        } else {
-          upiUrl += `&tn=${encodeURIComponent(notes)}`;
-        }
-      }
+      const upiUrl = `upi://pay?${parts.join("&")}`;
 
       // DEBUG: Show the exact URL being sent so we can diagnose issues
       // Remove this alert once payments work correctly

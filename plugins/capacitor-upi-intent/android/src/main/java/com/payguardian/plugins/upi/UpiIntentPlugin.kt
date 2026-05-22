@@ -25,12 +25,7 @@ class UpiIntentPlugin : Plugin() {
         try {
             val intent = Intent(Intent.ACTION_VIEW)
             intent.data = Uri.parse(url)
-
-            // Use a chooser so the user can pick their preferred UPI app.
-            // This also avoids resolveActivity() returning null on Android 11+
-            // even when UPI apps are installed.
-            val chooser = Intent.createChooser(intent, "Pay with")
-            startActivityForResult(call, chooser, "paymentResult")
+            startActivityForResult(call, intent, "paymentResult")
         } catch (e: Exception) {
             call.reject("Failed to initiate payment: ${e.message}")
         }
@@ -41,13 +36,11 @@ class UpiIntentPlugin : Plugin() {
         val ret = JSObject()
         ret.put("status", result.resultCode)
 
-        if (result.resultCode == Activity.RESULT_OK) {
-            val data = result.data
-            val response = data?.getStringExtra("response")
-            ret.put("response", response ?: "")
-        } else {
-            ret.put("response", "")
-        }
+        // Try to get the response string from the result data.
+        // UPI apps return the result in a "response" extra regardless of result code.
+        val data = result.data
+        val response = data?.getStringExtra("response") ?: ""
+        ret.put("response", response)
 
         call.resolve(ret)
     }
