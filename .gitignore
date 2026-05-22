@@ -38,6 +38,8 @@ next-env.d.ts
 *.sln
 *.sw?
 .gemini/
+/.gsd
+/.agent
 
 # Capacitor
 /android/

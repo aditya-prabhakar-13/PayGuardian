@@ -1,11 +1,11 @@
 # ROADMAP.md
 
-> **Current Phase**: Not started
+> **Current Phase**: 1
 > **Milestone**: v1.0
 
 ## Must-Haves (from SPEC)
-- [ ] Next.js 14+ Monorepo (Static Export client, Server API backend)
-- [ ] Google OAuth JWT-based Capacitor flow (`payguardian://auth-callback`)
+- [x] Next.js 14+ Monorepo (Static Export client, Server API backend)
+- [x] Google OAuth JWT-based Capacitor flow (`payguardian://auth-callback`)
 - [ ] Local-linked custom Kotlin Capacitor plugin for UPI intent processing
 - [ ] Offline-first IndexedDB (Dexie) architecture with sync queue
 - [ ] QR code scanning & auto vendor category matching
@@ -14,7 +14,7 @@
 ## Phases
 
 ### Phase 1: Project Skeleton & Auth SPIKE
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Setup monorepo codebase, dual-mode Next.js config, Capacitor init, Mongo connection, NextAuth Google OAuth with custom JWT mobile redirect.
 **Requirements**: REQ-01, REQ-02, REQ-03, REQ-12
 

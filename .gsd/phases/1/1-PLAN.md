@@ -87,8 +87,8 @@ Initialize the Next.js 14 monorepo with Tailwind CSS and Capacitor 6. Setup the 
 </task>
 
 ## Success Criteria
-- [ ] Next.js project is fully initialized and builds without TypeScript or compilation errors.
-- [ ] Static export build mode generates client files in `/out` directory.
-- [ ] Mongoose User model is defined and DB client helper is written.
-- [ ] NextAuth v5 backend authentication routes are in place, with JWT redirection payload.
-- [ ] Capacitor Android platform is configured with deep-linking intent filters.
+- [x] Next.js project is fully initialized and builds without TypeScript or compilation errors.
+- [x] Static export build mode generates client files in `/out` directory.
+- [x] Mongoose User model is defined and DB client helper is written.
+- [x] NextAuth v5 backend authentication routes are in place, with JWT redirection payload.
+- [x] Capacitor Android platform is configured with deep-linking intent filters.
