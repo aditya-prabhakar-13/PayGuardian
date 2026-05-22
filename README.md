@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PayGuardian
+
+PayGuardian is a privacy-first, offline-capable Personal Finance Manager that intercepts UPI intent calls before they reach apps like Google Pay or PhonePe. It logs the transaction instantly into a local IndexedDB (via Dexie) and seamlessly routes the payment. When you regain internet access, a background sync queue uploads your transaction data to your secure cloud database (MongoDB).
+
+## Features
+
+- **Offline-First Storage**: Uses IndexedDB (Dexie) to instantly log transactions, vendors, and category definitions without any network latency.
+- **Custom UPI Intent Plugin**: A custom Capacitor plugin intercepts `upi://pay` URLs from QR scans and forwards them directly to the native Android OS intent handler.
+- **Dynamic Budgeting**: Real-time spending analysis utilizing a custom dynamic Hemi-Donut SVG chart.
+- **Background Sync**: A custom `useCloudSync` React hook continuously monitors network status and silently drains the local `sync_queue` to your MongoDB backend via Next.js API routes.
+- **Modern UI/UX**: Built with Next.js 14+, Tailwind CSS v4, and React QR Scanner. Fully responsive and styled like a native mobile application.
+
+## Tech Stack
+
+- **Frontend**: Next.js 14+ (React), Tailwind CSS v4
+- **Mobile Container**: Capacitor v6 (Android)
+- **Local DB**: Dexie.js (IndexedDB wrapper)
+- **Cloud DB**: MongoDB (via Mongoose)
+- **Auth**: NextAuth.js (Google Provider)
 
 ## Getting Started
 
-First, run the development server:
+### Local Development (Web)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. Clone the repository and install dependencies:
+   ```bash
+   npm install
+   ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Configure environment variables. Copy `.env.example` to `.env.local` and add your MongoDB URI and Google OAuth credentials:
+   ```env
+   MONGODB_URI=your_mongodb_connection_string
+   NEXTAUTH_URL=http://localhost:3000
+   NEXTAUTH_SECRET=your_nextauth_secret
+   GOOGLE_CLIENT_ID=your_google_client_id
+   GOOGLE_CLIENT_SECRET=your_google_client_secret
+   ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Start the Next.js development server:
+   ```bash
+   npm run dev
+   ```
+   Open `http://localhost:3000` in your browser.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Building for Android
 
-## Learn More
+Because API routes cannot be statically exported, PayGuardian uses a custom build script to temporarily hide them during the Capacitor sync process.
 
-To learn more about Next.js, take a look at the following resources:
+1. Build the static web bundle:
+   ```bash
+   npm run build:mobile
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. Sync the web assets into the Android native project:
+   ```bash
+   npm run cap:sync
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. Compile the APK:
+   Open the `android/` directory in **Android Studio** and click "Build APK", or run Gradle from the command line:
+   ```bash
+   cd android
+   ./gradlew assembleDebug
+   ```
+   *Note: Ensure you have the Android SDK installed and `ANDROID_HOME` configured on your machine.*
 
-## Deploy on Vercel
+## Architecture Notes
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Why IndexedDB?
+We chose IndexedDB over SQLite for zero-configuration setup and true isomorphic code that works identically in the browser and on the mobile device.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Background Sync
+All data mutations (`CREATE`, `UPDATE`) push an event object into `localDb.sync_queue`. The `useCloudSync` hook checks `navigator.onLine`. If true, it POSTs the queue in bulk to `/api/sync` where the server uses MongoDB `updateOne({ upsert: true })` for strict idempotency.
+
+---
+Built with GSD.
