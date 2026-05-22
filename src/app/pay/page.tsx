@@ -82,6 +82,10 @@ function PayForm() {
         }
       }
 
+      // DEBUG: Show the exact URL being sent so we can diagnose issues
+      // Remove this alert once payments work correctly
+      alert("DEBUG UPI URL:\n\n" + upiUrl);
+
       // Call the Capacitor Plugin
       console.log("Initiating payment to:", upiUrl);
       const result = await UpiIntent.initiatePayment({ url: upiUrl });
