@@ -134,9 +134,31 @@ function PayForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-1">
-            Category
-          </label>
+          <div className="flex justify-between items-center mb-1">
+            <label className="block text-sm font-medium text-gray-400">
+              Category
+            </label>
+            <button
+              type="button"
+              onClick={async () => {
+                const newCat = prompt("Enter new category name:");
+                if (newCat && newCat.trim()) {
+                  const id = crypto.randomUUID();
+                  const payload = { id, name: newCat.trim(), limit: 0, synced: false };
+                  await localDb.categories.add(payload);
+                  await localDb.sync_queue.add({
+                    action: "CREATE",
+                    entity: "category",
+                    payload
+                  });
+                  setCategoryId(id);
+                }
+              }}
+              className="text-xs font-medium text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              + Add New
+            </button>
+          </div>
           <select
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
