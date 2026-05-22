@@ -5,6 +5,7 @@
     "noImplicitAny": true,
     "strict": true,
     "outDir": "dist",
+    "rootDir": "src",
     "declarationDir": "dist",
     "moduleResolution": "node",
     "declaration": true,
