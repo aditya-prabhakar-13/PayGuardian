@@ -31,6 +31,12 @@ export default function Home() {
   // Sync state placeholder (will be replaced in Wave 2)
   const { isOnline, isSyncing, queueSize } = useCloudSync();
 
+  // Prevent hydration mismatch by deferring online status rendering
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   return (
     <div className="flex flex-col min-h-screen bg-black text-white pb-24 relative">
       {/* Header */}
@@ -42,15 +48,19 @@ export default function Home() {
           <p className="text-sm text-gray-400">Welcome back</p>
         </div>
         <div className="flex items-center space-x-2">
-          {queueSize > 0 && (
+          {isMounted && queueSize > 0 && (
             <span className="text-xs text-gray-400 font-medium mr-2">
               {queueSize} {queueSize === 1 ? 'item' : 'items'} pending
             </span>
           )}
-          {isSyncing ? (
-            <span className="w-3 h-3 rounded-full bg-blue-500 animate-pulse" title="Syncing..." />
+          {isMounted ? (
+            isSyncing ? (
+              <span className="w-3 h-3 rounded-full bg-blue-500 animate-pulse" title="Syncing..." />
+            ) : (
+              <span className={`w-3 h-3 rounded-full ${isOnline ? (queueSize > 0 ? 'bg-yellow-500' : 'bg-green-500') : 'bg-red-500'}`} title={isOnline ? (queueSize > 0 ? 'Pending Sync' : 'Online & Synced') : 'Offline'} />
+            )
           ) : (
-            <span className={`w-3 h-3 rounded-full ${isOnline ? (queueSize > 0 ? 'bg-yellow-500' : 'bg-green-500') : 'bg-red-500'}`} title={isOnline ? (queueSize > 0 ? 'Pending Sync' : 'Online & Synced') : 'Offline'} />
+            <span className="w-3 h-3 rounded-full bg-gray-500" title="Loading status..." />
           )}
         </div>
       </header>
