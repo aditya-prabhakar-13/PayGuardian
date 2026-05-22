@@ -6,6 +6,8 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { HemiDonut } from "@/components/HemiDonut";
 import { useState, useEffect } from "react";
 
+import { useCloudSync } from "@/hooks/useCloudSync";
+
 export default function Home() {
   const [budget] = useState(50000); // Hardcoded fallback for Phase 5
   
@@ -24,7 +26,7 @@ export default function Home() {
   }, 0);
 
   // Sync state placeholder (will be replaced in Wave 2)
-  const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : false;
+  const { isOnline, isSyncing, queueSize } = useCloudSync();
 
   return (
     <div className="flex flex-col min-h-screen bg-black text-white pb-24 relative">
@@ -37,8 +39,16 @@ export default function Home() {
           <p className="text-sm text-gray-400">Welcome back</p>
         </div>
         <div className="flex items-center space-x-2">
-          {/* Wave 2 hook will power this */}
-          <span className={`w-3 h-3 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'}`} />
+          {queueSize > 0 && (
+            <span className="text-xs text-gray-400 font-medium mr-2">
+              {queueSize} {queueSize === 1 ? 'item' : 'items'} pending
+            </span>
+          )}
+          {isSyncing ? (
+            <span className="w-3 h-3 rounded-full bg-blue-500 animate-pulse" title="Syncing..." />
+          ) : (
+            <span className={`w-3 h-3 rounded-full ${isOnline ? (queueSize > 0 ? 'bg-yellow-500' : 'bg-green-500') : 'bg-red-500'}`} title={isOnline ? (queueSize > 0 ? 'Pending Sync' : 'Online & Synced') : 'Offline'} />
+          )}
         </div>
       </header>
 
