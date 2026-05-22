@@ -56,16 +56,14 @@ function PayForm() {
 
     try {
       // Construct UPI URI
-      // upi://pay?pa=address&pn=name&am=amount&tn=notes&tr=transactionRef
-      const urlParams = new URLSearchParams();
-      urlParams.set("pa", pa);
-      if (pn) urlParams.set("pn", pn);
-      urlParams.set("am", amount);
-      if (notes) urlParams.set("tn", notes);
+      // We start with all parameters from the original QR code (to preserve mc, tr, orgid, etc.)
+      const urlParams = new URLSearchParams(searchParams.toString());
       
-      // We generate a local transaction reference for tracking
-      const tr = crypto.randomUUID().replace(/-/g, "").substring(0, 16);
-      urlParams.set("tr", tr);
+      // Override or set the amount
+      urlParams.set("am", amount);
+      
+      // Add notes if provided
+      if (notes) urlParams.set("tn", notes);
 
       const upiUrl = `upi://pay?${urlParams.toString()}`;
 

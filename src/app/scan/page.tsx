@@ -21,21 +21,12 @@ export default function ScanPage() {
 
       // upi://pay?pa=address@upi&pn=Payee%20Name
       const url = new URL(rawUrl);
-      const pa = url.searchParams.get("pa");
-      const pn = url.searchParams.get("pn");
+      const queryParams = new URLSearchParams(url.search);
 
-      if (!pa) {
+      if (!queryParams.get("pa")) {
         setError("Invalid UPI QR. Missing payee address.");
         return;
       }
-
-      const queryParams = new URLSearchParams();
-      queryParams.set("pa", pa);
-      if (pn) queryParams.set("pn", pn);
-
-      // Extract amount if present in QR code
-      const am = url.searchParams.get("am");
-      if (am) queryParams.set("am", am);
 
       router.push(`/pay?${queryParams.toString()}`);
     } catch (e: any) {
