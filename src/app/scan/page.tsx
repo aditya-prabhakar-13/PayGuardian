@@ -19,16 +19,28 @@ export default function ScanPage() {
         return;
       }
 
-      // upi://pay?pa=address@upi&pn=Payee%20Name
+      // Parse only the display fields we need for the UI
       const url = new URL(rawUrl);
-      const queryParams = new URLSearchParams(url.search);
+      const pa = url.searchParams.get("pa");
 
-      if (!queryParams.get("pa")) {
+      if (!pa) {
         setError("Invalid UPI QR. Missing payee address.");
         return;
       }
 
-      router.push(`/pay?${queryParams.toString()}`);
+      // Store the EXACT raw QR string in sessionStorage so the pay page
+      // can use it byte-for-byte without any URL encoding mangling.
+      sessionStorage.setItem("payguardian_raw_upi", rawUrl);
+
+      // Only pass display-friendly params via the URL
+      const displayParams = new URLSearchParams();
+      displayParams.set("pa", pa);
+      const pn = url.searchParams.get("pn");
+      if (pn) displayParams.set("pn", pn);
+      const am = url.searchParams.get("am");
+      if (am) displayParams.set("am", am);
+
+      router.push(`/pay?${displayParams.toString()}`);
     } catch (e: any) {
       console.error("Scan error", e);
       setError("Failed to parse QR code.");

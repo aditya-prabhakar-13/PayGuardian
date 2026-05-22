@@ -55,20 +55,32 @@ function PayForm() {
     setIsProcessing(true);
 
     try {
-      // Construct UPI URI
-      // We start with all parameters from the original QR code (to preserve mc, tr, orgid, etc.)
-      const urlParams = new URLSearchParams(searchParams.toString());
-      
-      // Override or set the amount
-      urlParams.set("am", amount);
-      
-      // Add notes if provided
-      if (notes) urlParams.set("tn", notes);
+      // Read the original raw QR string that was saved by the scan page.
+      // This preserves every parameter exactly as the merchant encoded them,
+      // avoiding all URLSearchParams encoding/decoding issues.
+      let upiUrl = sessionStorage.getItem("payguardian_raw_upi") || "";
 
-      // CRITICAL: URLSearchParams.toString() percent-encodes characters like @ to %40.
-      // UPI apps (GPay, PhonePe) reject encoded VPA addresses. We must decode the
-      // query string so the final URI matches the raw format UPI apps expect.
-      const upiUrl = `upi://pay?${decodeURIComponent(urlParams.toString())}`;
+      if (!upiUrl) {
+        // Fallback: build a minimal UPI URL from the display params
+        upiUrl = `upi://pay?pa=${pa}&am=${amount}`;
+        if (pn) upiUrl += `&pn=${pn}`;
+      } else {
+        // Replace or insert the amount in the raw URL
+        if (upiUrl.match(/[?&]am=[^&]*/)) {
+          upiUrl = upiUrl.replace(/([?&]am=)[^&]*/, `$1${amount}`);
+        } else {
+          upiUrl += `&am=${amount}`;
+        }
+      }
+
+      // Add notes if provided
+      if (notes) {
+        if (upiUrl.match(/[?&]tn=[^&]*/)) {
+          upiUrl = upiUrl.replace(/([?&]tn=)[^&]*/, `$1${encodeURIComponent(notes)}`);
+        } else {
+          upiUrl += `&tn=${encodeURIComponent(notes)}`;
+        }
+      }
 
       // Call the Capacitor Plugin
       console.log("Initiating payment to:", upiUrl);
