@@ -1,13 +1,13 @@
 # ROADMAP.md
 
-> **Current Phase**: 2
+> **Current Phase**: 3
 > **Milestone**: v1.0
 
 ## Must-Haves (from SPEC)
 - [x] Next.js 14+ Monorepo (Static Export client, Server API backend)
 - [x] Google OAuth JWT-based Capacitor flow (`payguardian://auth-callback`)
 - [x] Local-linked custom Kotlin Capacitor plugin for UPI intent processing
-- [ ] Offline-first IndexedDB (Dexie) architecture with sync queue
+- [x] Offline-first IndexedDB (Dexie) architecture with sync queue
 - [ ] QR code scanning & auto vendor category matching
 - [ ] Dashboard budgeting visualizer (hemi-donut chart)
 
@@ -24,7 +24,7 @@
 **Requirements**: REQ-04
 
 ### Phase 3: Data Layer & Offline Setup
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: MongoDB Mongoose schemas, JWT verification API middleware, Dexie.js schema setup, and local data synchronization queue design.
 **Requirements**: REQ-05, REQ-06, REQ-07, REQ-11
 
