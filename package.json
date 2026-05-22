@@ -17,6 +17,7 @@
     "@capacitor/browser": "^6.0.0",
     "@capacitor/core": "^6.0.0",
     "@capacitor/preferences": "^6.0.0",
+    "@yudiel/react-qr-scanner": "^2.6.0",
     "capacitor-upi-intent": "file:plugins/capacitor-upi-intent",
     "dexie": "^4.4.2",
     "jsonwebtoken": "^9.0.2",
