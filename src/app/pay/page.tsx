@@ -65,7 +65,10 @@ function PayForm() {
       // Add notes if provided
       if (notes) urlParams.set("tn", notes);
 
-      const upiUrl = `upi://pay?${urlParams.toString()}`;
+      // CRITICAL: URLSearchParams.toString() percent-encodes characters like @ to %40.
+      // UPI apps (GPay, PhonePe) reject encoded VPA addresses. We must decode the
+      // query string so the final URI matches the raw format UPI apps expect.
+      const upiUrl = `upi://pay?${decodeURIComponent(urlParams.toString())}`;
 
       // Call the Capacitor Plugin
       console.log("Initiating payment to:", upiUrl);

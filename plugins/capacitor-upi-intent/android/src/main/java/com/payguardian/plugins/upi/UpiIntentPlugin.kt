@@ -26,12 +26,11 @@ class UpiIntentPlugin : Plugin() {
             val intent = Intent(Intent.ACTION_VIEW)
             intent.data = Uri.parse(url)
 
-            val packageManager = context.packageManager
-            if (intent.resolveActivity(packageManager) != null) {
-                startActivityForResult(call, intent, "paymentResult")
-            } else {
-                call.reject("No UPI app installed to handle this intent")
-            }
+            // Use a chooser so the user can pick their preferred UPI app.
+            // This also avoids resolveActivity() returning null on Android 11+
+            // even when UPI apps are installed.
+            val chooser = Intent.createChooser(intent, "Pay with")
+            startActivityForResult(call, chooser, "paymentResult")
         } catch (e: Exception) {
             call.reject("Failed to initiate payment: ${e.message}")
         }
