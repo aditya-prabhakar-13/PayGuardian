@@ -58,12 +58,14 @@ function PayForm() {
       // Build a clean minimal UPI URL with only the essential parameters.
       // GPay rejects external intents that include merchant-specific params
       // like mc, mode, purpose that are only meant for internal QR processing.
+      // CRITICAL: We must URL-encode `pn` and `tn` because raw spaces break Android's
+      // Uri.parse(). However, we must NOT encode `pa` because GPay rejects `%40` instead of `@`.
       const parts: string[] = [];
-      parts.push(`pa=${pa}`);
-      if (pn) parts.push(`pn=${pn}`);
+      parts.push(`pa=${pa.trim()}`);
+      if (pn) parts.push(`pn=${encodeURIComponent(pn.trim())}`);
       parts.push(`am=${amount}`);
       parts.push(`cu=INR`);
-      if (notes) parts.push(`tn=${notes}`);
+      if (notes) parts.push(`tn=${encodeURIComponent(notes.trim())}`);
 
       const upiUrl = `upi://pay?${parts.join("&")}`;
 
