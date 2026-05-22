@@ -1,12 +1,12 @@
 # ROADMAP.md
 
-> **Current Phase**: 1
+> **Current Phase**: 2
 > **Milestone**: v1.0
 
 ## Must-Haves (from SPEC)
 - [x] Next.js 14+ Monorepo (Static Export client, Server API backend)
 - [x] Google OAuth JWT-based Capacitor flow (`payguardian://auth-callback`)
-- [ ] Local-linked custom Kotlin Capacitor plugin for UPI intent processing
+- [x] Local-linked custom Kotlin Capacitor plugin for UPI intent processing
 - [ ] Offline-first IndexedDB (Dexie) architecture with sync queue
 - [ ] QR code scanning & auto vendor category matching
 - [ ] Dashboard budgeting visualizer (hemi-donut chart)
@@ -19,7 +19,7 @@
 **Requirements**: REQ-01, REQ-02, REQ-03, REQ-12
 
 ### Phase 2: UPI Intent Capacitor Plugin SPIKE
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Build and locally link custom Kotlin Capacitor plugin. Fire UPI intents to GPay, Paytm, and PhonePe, capturing and documenting response payloads.
 **Requirements**: REQ-04
 
