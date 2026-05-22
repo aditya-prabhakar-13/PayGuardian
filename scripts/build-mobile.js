@@ -59,6 +59,13 @@ function restore() {
 }
 
 try {
+  // Clear the Next.js cache to prevent stale type errors (validator.ts looking for old routes)
+  const nextCacheDir = path.join(__dirname, "..", ".next");
+  if (fs.existsSync(nextCacheDir)) {
+    console.log("🧹 Clearing .next cache...");
+    fs.rmSync(nextCacheDir, { recursive: true, force: true });
+  }
+
   hide();
   execSync("npx cross-env OUTPUT_MODE=export next build", {
     stdio: "inherit",
