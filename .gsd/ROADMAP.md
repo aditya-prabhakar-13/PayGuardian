@@ -39,7 +39,7 @@
 **Requirements**: REQ-09, REQ-11
 
 ### Phase 6: Settings & Management
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Category CRUD (limits/colors), vendor modification panel, account details, and paginated transaction history log.
 **Requirements**: REQ-10
 
