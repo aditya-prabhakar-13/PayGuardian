@@ -18,6 +18,7 @@
     "@capacitor/core": "^6.0.0",
     "@capacitor/preferences": "^6.0.0",
     "capacitor-upi-intent": "file:plugins/capacitor-upi-intent",
+    "dexie": "^4.4.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.0.0",
     "next": "16.2.6",
