@@ -9,7 +9,10 @@ import { useState, useEffect } from "react";
 import { useCloudSync } from "@/hooks/useCloudSync";
 
 export default function Home() {
-  const [budget] = useState(50000); // Hardcoded fallback for Phase 5
+  // Fetch categories to calculate dynamic budget
+  const categories = useLiveQuery(() => localDb.categories.toArray()) || [];
+  const dynamicBudget = categories.reduce((sum, cat) => sum + (cat.limit || 0), 0);
+  const budget = dynamicBudget > 0 ? dynamicBudget : 50000; // Fallback to 50000 if no limits set
   
   // Fetch transactions using dexie-react-hooks
   const transactions = useLiveQuery(
