@@ -1,15 +1,26 @@
+export interface UpiPaymentOptions {
+    /** Payee UPI address (VPA), e.g. "merchant@bank" */
+    pa: string;
+    /** Payee name */
+    pn?: string;
+    /** Amount */
+    am?: string;
+    /** Transaction note */
+    tn?: string;
+    /** Transaction reference ID (unique per transaction) */
+    tr?: string;
+}
+export interface UpiPaymentResult {
+    /** Android Activity result code */
+    status: number;
+    /** Raw response string from the UPI app */
+    response: string;
+}
 export interface UpiIntentPlugin {
     /**
-     * Fires an Android Intent.ACTION_VIEW for the given UPI URL
-     * and waits for the ActivityResult callback.
-     *
-     * @param options Object containing the UPI `url` (e.g. upi://pay?...)
-     * @returns Resolves with the `status` (Android Activity resultCode) and the raw string `response` payload.
+     * Initiates a UPI payment by building an Android Intent from individual
+     * payment parameters. The URI is constructed on the native side using
+     * Uri.Builder to ensure proper encoding for UPI apps.
      */
-    initiatePayment(options: {
-        url: string;
-    }): Promise<{
-        status: number;
-        response: string;
-    }>;
+    initiatePayment(options: UpiPaymentOptions): Promise<UpiPaymentResult>;
 }
