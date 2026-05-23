@@ -1,6 +1,12 @@
 export interface UpiPaymentOptions {
-    /** Payee UPI address (VPA), e.g. "merchant@bank" */
-    pa: string;
+    /**
+     * Raw UPI URL string (e.g. from a QR code scan).
+     * If provided, it is passed directly to the UPI app without re-encoding.
+     * When url is provided, all other fields are ignored.
+     */
+    url?: string;
+    /** Payee UPI address (VPA), e.g. "merchant@bank" — required if url is not provided */
+    pa?: string;
     /** Payee name */
     pn?: string;
     /** Amount */
@@ -18,9 +24,9 @@ export interface UpiPaymentResult {
 }
 export interface UpiIntentPlugin {
     /**
-     * Initiates a UPI payment by building an Android Intent from individual
-     * payment parameters. The URI is constructed on the native side using
-     * Uri.Builder to ensure proper encoding for UPI apps.
+     * Initiates a UPI payment. Accepts either:
+     * - A raw `url` string (passed directly to Android Intent)
+     * - Individual params (pa, pn, am, etc.) which are assembled into a URI natively
      */
     initiatePayment(options: UpiPaymentOptions): Promise<UpiPaymentResult>;
 }

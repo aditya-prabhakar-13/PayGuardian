@@ -15,48 +15,46 @@ class UpiIntentPlugin : Plugin() {
 
     @PluginMethod
     fun initiatePayment(call: PluginCall) {
-        val pa = call.getString("pa")
-        if (pa == null) {
-            call.reject("Must provide payee address (pa)")
-            return
-        }
+        // Support two modes:
+        // 1. "url" — pass a raw UPI URL string (from QR scan) directly
+        // 2. Individual params (pa, pn, am, etc.) — build the URI natively
+        val rawUrl = call.getString("url")
 
-        try {
-            // Build the URI using Android's Uri.Builder so that encoding
-            // is handled exactly the way UPI apps expect.
-            // appendQueryParameter() applies proper encoding natively.
+        val uri: Uri = if (!rawUrl.isNullOrBlank()) {
+            // Mode 1: Use the raw URL as-is — no re-encoding
+            Uri.parse(rawUrl)
+        } else {
+            // Mode 2: Build from individual params
+            val pa = call.getString("pa")
+            if (pa == null) {
+                call.reject("Must provide a UPI URL or payee address (pa)")
+                return
+            }
+
             val builder = Uri.Builder()
                 .scheme("upi")
                 .authority("pay")
                 .appendQueryParameter("pa", pa)
 
             val pn = call.getString("pn")
-            if (!pn.isNullOrBlank()) {
-                builder.appendQueryParameter("pn", pn)
-            }
+            if (!pn.isNullOrBlank()) builder.appendQueryParameter("pn", pn)
 
             val am = call.getString("am")
-            if (!am.isNullOrBlank()) {
-                builder.appendQueryParameter("am", am)
-            }
+            if (!am.isNullOrBlank()) builder.appendQueryParameter("am", am)
 
             builder.appendQueryParameter("cu", "INR")
 
             val tn = call.getString("tn")
-            if (!tn.isNullOrBlank()) {
-                builder.appendQueryParameter("tn", tn)
-            }
+            if (!tn.isNullOrBlank()) builder.appendQueryParameter("tn", tn)
 
-            // Generate a unique transaction reference
             val tr = call.getString("tr")
-            if (!tr.isNullOrBlank()) {
-                builder.appendQueryParameter("tr", tr)
-            }
+            if (!tr.isNullOrBlank()) builder.appendQueryParameter("tr", tr)
 
-            val uri = builder.build()
+            builder.build()
+        }
 
-            val intent = Intent(Intent.ACTION_VIEW)
-            intent.data = uri
+        try {
+            val intent = Intent(Intent.ACTION_VIEW, uri)
             startActivityForResult(call, intent, "paymentResult")
         } catch (e: Exception) {
             call.reject("Failed to initiate payment: ${e.message}")

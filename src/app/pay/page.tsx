@@ -3,7 +3,7 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
-import { UpiIntent, UpiPaymentOptions } from "capacitor-upi-intent";
+import { UpiIntent } from "capacitor-upi-intent";
 import { localDb, LocalCategory } from "@/lib/local-db";
 import { useLiveQuery } from "dexie-react-hooks";
 
@@ -55,23 +55,43 @@ function PayForm() {
     setIsProcessing(true);
 
     try {
-      // Pass individual parameters to the native plugin.
-      // The Android side builds the URI using Uri.Builder which handles
-      // encoding exactly the way UPI apps expect (no manual encoding needed).
-      const paymentParams: UpiPaymentOptions = {
-        pa: pa.trim(),
-        am: amount,
-      };
-      if (pn) paymentParams.pn = pn.trim();
-      if (notes) paymentParams.tn = notes.trim();
-      // Generate a unique transaction reference
-      paymentParams.tr = `PG${Date.now()}`;
+      // Strategy: Use the ORIGINAL raw QR string from sessionStorage.
+      // This is the exact same string a UPI app would get if it scanned
+      // the QR code directly. We only modify the amount if needed.
+      const rawQr = sessionStorage.getItem("payguardian_raw_upi");
+      
+      let upiUrl: string;
+      
+      if (rawQr) {
+        // We have the original QR — use it as the base.
+        // Replace or inject the amount the user entered.
+        const qrUrl = new URL(rawQr);
+        qrUrl.searchParams.set("am", amount);
+        if (notes) qrUrl.searchParams.set("tn", notes.trim());
+        // Reconstruct: scheme + authority + search params
+        // We manually build to avoid double-encoding from URL class
+        const params: string[] = [];
+        qrUrl.searchParams.forEach((value, key) => {
+          params.push(`${key}=${value}`);
+        });
+        upiUrl = `upi://pay?${params.join("&")}`;
+      } else {
+        // Fallback: no raw QR (e.g. manual entry), build minimal URL
+        const params: string[] = [];
+        params.push(`pa=${pa.trim()}`);
+        if (pn) params.push(`pn=${pn.trim()}`);
+        params.push(`am=${amount}`);
+        params.push(`cu=INR`);
+        if (notes) params.push(`tn=${notes.trim()}`);
+        params.push(`tr=PG${Date.now()}`);
+        upiUrl = `upi://pay?${params.join("&")}`;
+      }
 
-      // DEBUG: Show the params being sent
-      alert("DEBUG UPI PARAMS:\n\n" + JSON.stringify(paymentParams, null, 2));
+      // DEBUG: Show the exact URL being sent
+      alert("DEBUG UPI URL:\n\n" + upiUrl);
 
-      console.log("Initiating payment with:", paymentParams);
-      const result = await UpiIntent.initiatePayment(paymentParams);
+      console.log("Initiating payment:", upiUrl);
+      const result = await UpiIntent.initiatePayment({ url: upiUrl });
       
       console.log("Payment Result:", result);
 
