@@ -3,7 +3,7 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
-import { UpiIntent } from "capacitor-upi-intent";
+import { UpiIntent, UpiPaymentOptions } from "capacitor-upi-intent";
 import { localDb, LocalCategory } from "@/lib/local-db";
 import { useLiveQuery } from "dexie-react-hooks";
 
@@ -58,7 +58,7 @@ function PayForm() {
       // Pass individual parameters to the native plugin.
       // The Android side builds the URI using Uri.Builder which handles
       // encoding exactly the way UPI apps expect (no manual encoding needed).
-      const paymentParams: Record<string, string> = {
+      const paymentParams: UpiPaymentOptions = {
         pa: pa.trim(),
         am: amount,
       };
