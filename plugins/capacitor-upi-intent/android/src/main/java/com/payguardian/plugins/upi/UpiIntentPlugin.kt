@@ -2,6 +2,7 @@ package com.payguardian.plugins.upi
 
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.activity.result.ActivityResult
 import com.getcapacitor.JSObject
 import com.getcapacitor.Plugin
@@ -53,10 +54,12 @@ class UpiIntentPlugin : Plugin() {
             builder.build()
         }
 
+        Log.d("UpiIntentPlugin", "Launching UPI intent: $uri")
         try {
             val intent = Intent(Intent.ACTION_VIEW, uri)
             startActivityForResult(call, intent, "paymentResult")
         } catch (e: Exception) {
+            Log.e("UpiIntentPlugin", "Failed to launch UPI intent", e)
             call.reject("Failed to initiate payment: ${e.message}")
         }
     }

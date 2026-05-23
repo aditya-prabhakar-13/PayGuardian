@@ -38,10 +38,15 @@ next-env.d.ts
 *.sln
 *.sw?
 .gemini/
+.claude
 /.gsd
 /.agent
+CLAUDE.md
 
 # Capacitor
 /android/
 /ios/
 plugins/**/android/build/
+
+
+graphify-out

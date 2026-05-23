@@ -55,44 +55,40 @@ function PayForm() {
     setIsProcessing(true);
 
     try {
-      // Strategy: Use the ORIGINAL raw QR string from sessionStorage.
-      // This is the exact same string a UPI app would get if it scanned
-      // the QR code directly. We only modify the amount if needed.
+      // Pull payee name from the raw QR if available (more reliable than the
+      // display-side `pn` query param, which is a Next.js search param).
+      let payeeName = pn || "";
       const rawQr = sessionStorage.getItem("payguardian_raw_upi");
-      
-      let upiUrl: string;
-      
       if (rawQr) {
-        // We have the original QR — use it as the base.
-        // Replace or inject the amount the user entered.
-        const qrUrl = new URL(rawQr);
-        qrUrl.searchParams.set("am", amount);
-        if (notes) qrUrl.searchParams.set("tn", notes.trim());
-        // Reconstruct: scheme + authority + search params
-        // We manually build to avoid double-encoding from URL class
-        const params: string[] = [];
-        qrUrl.searchParams.forEach((value, key) => {
-          params.push(`${key}=${value}`);
-        });
-        upiUrl = `upi://pay?${params.join("&")}`;
-      } else {
-        // Fallback: no raw QR (e.g. manual entry), build minimal URL
-        const params: string[] = [];
-        params.push(`pa=${pa.trim()}`);
-        if (pn) params.push(`pn=${pn.trim()}`);
-        params.push(`am=${amount}`);
-        params.push(`cu=INR`);
-        if (notes) params.push(`tn=${notes.trim()}`);
-        params.push(`tr=PG${Date.now()}`);
-        upiUrl = `upi://pay?${params.join("&")}`;
+        try {
+          const qrPn = new URL(rawQr).searchParams.get("pn");
+          if (qrPn) payeeName = qrPn;
+        } catch {
+          /* fall back to display pn */
+        }
       }
 
-      // DEBUG: Show the exact URL being sent
-      alert("DEBUG UPI URL:\n\n" + upiUrl);
+      // UPI spec: amount must be a two-decimal value (e.g. "1.00", not "1").
+      const amFormatted = Number(amount).toFixed(2);
 
-      console.log("Initiating payment:", upiUrl);
-      const result = await UpiIntent.initiatePayment({ url: upiUrl });
-      
+      // Unique alphanumeric transaction reference, ~12 chars.
+      const tr = "PG" + Date.now().toString(36).toUpperCase();
+
+      // Send individual params. The native plugin builds the URI with
+      // Uri.Builder().appendQueryParameter(...) which RFC-encodes correctly.
+      // We deliberately DO NOT forward merchant params (mc, mode, purpose,
+      // orgid, sign) from the QR — merchant-mode flows require a PKI-signed
+      // payload, which non-merchant apps can't produce, and UPI apps reject
+      // them via Intent with generic "Bank limit exceeded" / "Technical error".
+      console.log("Initiating UPI payment:", { pa, pn: payeeName, am: amFormatted, tr });
+      const result = await UpiIntent.initiatePayment({
+        pa: pa.trim(),
+        pn: payeeName.trim() || undefined,
+        am: amFormatted,
+        tn: notes.trim() || undefined,
+        tr,
+      });
+
       console.log("Payment Result:", result);
 
       // In Plan 4.3, we will handle parsing the result, saving to db, and routing to success.
