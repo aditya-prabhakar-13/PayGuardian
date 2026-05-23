@@ -1,6 +1,5 @@
 package com.payguardian.plugins.upi
 
-import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.result.ActivityResult
@@ -16,15 +15,48 @@ class UpiIntentPlugin : Plugin() {
 
     @PluginMethod
     fun initiatePayment(call: PluginCall) {
-        val url = call.getString("url")
-        if (url == null) {
-            call.reject("Must provide a UPI URL")
+        val pa = call.getString("pa")
+        if (pa == null) {
+            call.reject("Must provide payee address (pa)")
             return
         }
 
         try {
+            // Build the URI using Android's Uri.Builder so that encoding
+            // is handled exactly the way UPI apps expect.
+            // appendQueryParameter() applies proper encoding natively.
+            val builder = Uri.Builder()
+                .scheme("upi")
+                .authority("pay")
+                .appendQueryParameter("pa", pa)
+
+            val pn = call.getString("pn")
+            if (!pn.isNullOrBlank()) {
+                builder.appendQueryParameter("pn", pn)
+            }
+
+            val am = call.getString("am")
+            if (!am.isNullOrBlank()) {
+                builder.appendQueryParameter("am", am)
+            }
+
+            builder.appendQueryParameter("cu", "INR")
+
+            val tn = call.getString("tn")
+            if (!tn.isNullOrBlank()) {
+                builder.appendQueryParameter("tn", tn)
+            }
+
+            // Generate a unique transaction reference
+            val tr = call.getString("tr")
+            if (!tr.isNullOrBlank()) {
+                builder.appendQueryParameter("tr", tr)
+            }
+
+            val uri = builder.build()
+
             val intent = Intent(Intent.ACTION_VIEW)
-            intent.data = Uri.parse(url)
+            intent.data = uri
             startActivityForResult(call, intent, "paymentResult")
         } catch (e: Exception) {
             call.reject("Failed to initiate payment: ${e.message}")
@@ -36,8 +68,6 @@ class UpiIntentPlugin : Plugin() {
         val ret = JSObject()
         ret.put("status", result.resultCode)
 
-        // Try to get the response string from the result data.
-        // UPI apps return the result in a "response" extra regardless of result code.
         val data = result.data
         val response = data?.getStringExtra("response") ?: ""
         ret.put("response", response)

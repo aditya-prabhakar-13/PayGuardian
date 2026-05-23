@@ -55,27 +55,23 @@ function PayForm() {
     setIsProcessing(true);
 
     try {
-      // Build a clean minimal UPI URL with only the essential parameters.
-      // GPay rejects external intents that include merchant-specific params
-      // like mc, mode, purpose that are only meant for internal QR processing.
-      // CRITICAL: We must URL-encode `pn` and `tn` because raw spaces break Android's
-      // Uri.parse(). However, we must NOT encode `pa` because GPay rejects `%40` instead of `@`.
-      const parts: string[] = [];
-      parts.push(`pa=${pa.trim()}`);
-      if (pn) parts.push(`pn=${encodeURIComponent(pn.trim())}`);
-      parts.push(`am=${amount}`);
-      parts.push(`cu=INR`);
-      if (notes) parts.push(`tn=${encodeURIComponent(notes.trim())}`);
+      // Pass individual parameters to the native plugin.
+      // The Android side builds the URI using Uri.Builder which handles
+      // encoding exactly the way UPI apps expect (no manual encoding needed).
+      const paymentParams: Record<string, string> = {
+        pa: pa.trim(),
+        am: amount,
+      };
+      if (pn) paymentParams.pn = pn.trim();
+      if (notes) paymentParams.tn = notes.trim();
+      // Generate a unique transaction reference
+      paymentParams.tr = `PG${Date.now()}`;
 
-      const upiUrl = `upi://pay?${parts.join("&")}`;
+      // DEBUG: Show the params being sent
+      alert("DEBUG UPI PARAMS:\n\n" + JSON.stringify(paymentParams, null, 2));
 
-      // DEBUG: Show the exact URL being sent so we can diagnose issues
-      // Remove this alert once payments work correctly
-      alert("DEBUG UPI URL:\n\n" + upiUrl);
-
-      // Call the Capacitor Plugin
-      console.log("Initiating payment to:", upiUrl);
-      const result = await UpiIntent.initiatePayment({ url: upiUrl });
+      console.log("Initiating payment with:", paymentParams);
+      const result = await UpiIntent.initiatePayment(paymentParams);
       
       console.log("Payment Result:", result);
 
